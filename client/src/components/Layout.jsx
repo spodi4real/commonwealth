@@ -19,6 +19,7 @@ const OWNER_NAV = [
   { to: '/owner/pending-desires', label: 'Pending' },
   { to: '/owner/budgets',         label: 'Budgets' },
   { to: '/owner/goals',           label: 'Goals' },
+  { to: '/owner/reports',         label: 'Reports' },
   { to: '/owner/rates',           label: 'Rates' },
 ];
 

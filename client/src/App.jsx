@@ -8,6 +8,7 @@ import Transactions from './pages/Transactions.jsx';
 import Budgets from './pages/Budgets.jsx';
 import Goals from './pages/Goals.jsx';
 import PendingDesires from './pages/PendingDesires.jsx';
+import Reports from './pages/Reports.jsx';
 import MomDashboard from './pages/MomDashboard.jsx';
 
 function Loading() {
@@ -98,6 +99,14 @@ export default function App() {
         element={
           <RequireAuth role="owner">
             <PendingDesires />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/owner/reports"
+        element={
+          <RequireAuth role="owner">
+            <Reports />
           </RequireAuth>
         }
       />
