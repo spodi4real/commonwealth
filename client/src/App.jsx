@@ -4,6 +4,7 @@ import Login from './pages/Login.jsx';
 import ChangePin from './pages/ChangePin.jsx';
 import OwnerDashboard from './pages/OwnerDashboard.jsx';
 import Rates from './pages/Rates.jsx';
+import Transactions from './pages/Transactions.jsx';
 import MomDashboard from './pages/MomDashboard.jsx';
 
 function Loading() {
@@ -62,6 +63,14 @@ export default function App() {
         element={
           <RequireAuth role="owner">
             <Rates />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/owner/transactions"
+        element={
+          <RequireAuth role="owner">
+            <Transactions />
           </RequireAuth>
         }
       />

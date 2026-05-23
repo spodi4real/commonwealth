@@ -14,8 +14,9 @@ export function Shell({ children, footer }) {
 }
 
 const OWNER_NAV = [
-  { to: '/owner',       label: 'Dashboard', end: true },
-  { to: '/owner/rates', label: 'Rates' },
+  { to: '/owner',              label: 'Dashboard',    end: true },
+  { to: '/owner/transactions', label: 'Allocations' },
+  { to: '/owner/rates',        label: 'Rates' },
 ];
 
 function OwnerNav() {

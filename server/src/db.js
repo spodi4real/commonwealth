@@ -118,6 +118,12 @@ CREATE TABLE IF NOT EXISTS audit_log (
   after_json  TEXT,
   created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS settings (
+  key        TEXT PRIMARY KEY,
+  value      TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `;
 
 db.exec(SCHEMA);
