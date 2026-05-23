@@ -13,6 +13,7 @@ import ratesRoutes from './routes/rates.js';
 import transactionsRoutes from './routes/transactions.js';
 import momRoutes from './routes/mom.js';
 import approvalsRoutes from './routes/approvals.js';
+import budgetsRoutes from './routes/budgets.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 4000);
@@ -41,6 +42,7 @@ app.use('/api/rates', ratesRoutes);
 app.use('/api/transactions', transactionsRoutes);
 app.use('/api/mom', momRoutes);
 app.use('/api/approvals', approvalsRoutes);
+app.use('/api/budgets', budgetsRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
 

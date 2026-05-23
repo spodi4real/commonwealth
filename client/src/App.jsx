@@ -5,6 +5,7 @@ import ChangePin from './pages/ChangePin.jsx';
 import OwnerDashboard from './pages/OwnerDashboard.jsx';
 import Rates from './pages/Rates.jsx';
 import Transactions from './pages/Transactions.jsx';
+import Budgets from './pages/Budgets.jsx';
 import MomDashboard from './pages/MomDashboard.jsx';
 
 function Loading() {
@@ -71,6 +72,14 @@ export default function App() {
         element={
           <RequireAuth role="owner">
             <Transactions />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/owner/budgets"
+        element={
+          <RequireAuth role="owner">
+            <Budgets />
           </RequireAuth>
         }
       />
