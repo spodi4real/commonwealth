@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-bg text-ink font-sans antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+  h1, h2, h3 {
+    @apply font-serif tracking-tight;
+  }
+  ::selection {
+    background: #C9A961;
+    color: #0B1220;
+  }
+}
+
+@layer components {
+  .cw-card {
+    @apply bg-surface border border-line rounded-lg;
+  }
+  .cw-input {
+    @apply bg-surface2 border border-line text-ink rounded
+           px-3 py-2 outline-none
+           focus:border-gold focus:ring-1 focus:ring-gold/40
+           placeholder:text-inkDim;
+  }
+  .cw-btn {
+    @apply inline-flex items-center justify-center
+           rounded px-4 py-2 font-medium
+           transition-colors duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .cw-btn-primary {
+    @apply cw-btn bg-gold text-bg hover:bg-goldDim;
+  }
+  .cw-btn-ghost {
+    @apply cw-btn text-inkDim hover:text-ink;
+  }
+  .cw-label {
+    @apply text-xs uppercase tracking-widest text-inkDim font-medium;
+  }
+}

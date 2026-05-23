@@ -1,0 +1,24 @@
+node_modules/
+dist/
+build/
+
+# Local DB — never commit family financial data
+db/*.sqlite
+db/*.sqlite-journal
+db/*.sqlite-wal
+db/*.sqlite-shm
+
+# Environment
+.env
+.env.local
+*.local
+
+# Editor
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
