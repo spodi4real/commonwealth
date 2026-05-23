@@ -6,6 +6,7 @@ import OwnerDashboard from './pages/OwnerDashboard.jsx';
 import Rates from './pages/Rates.jsx';
 import Transactions from './pages/Transactions.jsx';
 import Budgets from './pages/Budgets.jsx';
+import Goals from './pages/Goals.jsx';
 import MomDashboard from './pages/MomDashboard.jsx';
 
 function Loading() {
@@ -80,6 +81,14 @@ export default function App() {
         element={
           <RequireAuth role="owner">
             <Budgets />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/owner/goals"
+        element={
+          <RequireAuth role="owner">
+            <Goals />
           </RequireAuth>
         }
       />

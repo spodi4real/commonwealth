@@ -17,6 +17,7 @@ const OWNER_NAV = [
   { to: '/owner',              label: 'Dashboard',    end: true },
   { to: '/owner/transactions', label: 'Allocations' },
   { to: '/owner/budgets',      label: 'Budgets' },
+  { to: '/owner/goals',        label: 'Goals' },
   { to: '/owner/rates',        label: 'Rates' },
 ];
 
