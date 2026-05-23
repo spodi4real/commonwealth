@@ -11,6 +11,8 @@ import { cleanupExpiredSessions } from './session.js';
 import authRoutes from './routes/auth.js';
 import ratesRoutes from './routes/rates.js';
 import transactionsRoutes from './routes/transactions.js';
+import momRoutes from './routes/mom.js';
+import approvalsRoutes from './routes/approvals.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 4000);
@@ -37,6 +39,8 @@ if (!IS_PROD) {
 app.use('/api/auth', authRoutes);
 app.use('/api/rates', ratesRoutes);
 app.use('/api/transactions', transactionsRoutes);
+app.use('/api/mom', momRoutes);
+app.use('/api/approvals', approvalsRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
 

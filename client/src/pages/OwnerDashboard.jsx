@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import { fmtDate, fmtRelativeDate, todayISO } from '../lib/format.js';
 import { AuthedShell } from '../components/Layout.jsx';
+import { PendingApprovals } from '../components/PendingApprovals.jsx';
 import { useAuth } from '../lib/session.jsx';
 
 export default function OwnerDashboard() {
@@ -15,11 +16,13 @@ export default function OwnerDashboard() {
           <h1 className="text-4xl mt-1">Good to see you, {user?.name}.</h1>
         </header>
 
+        <PendingApprovals />
+
         <div className="grid md:grid-cols-3 gap-6">
           <RateCard />
           <ComingSoonCard
             title="Capital position"
-            body="Net position, savings rate, and wealth velocity arrive once transactions and budgets are wired in (Phases 3–5)."
+            body="Net position, savings rate, and wealth velocity arrive in Phase 7 once full transaction history accumulates."
           />
           <ComingSoonCard
             title="Goals"
