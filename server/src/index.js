@@ -15,6 +15,8 @@ import momRoutes from './routes/mom.js';
 import approvalsRoutes from './routes/approvals.js';
 import budgetsRoutes from './routes/budgets.js';
 import goalsRoutes from './routes/goals.js';
+import dashboardRoutes from './routes/dashboard.js';
+import settingsRoutes from './routes/settings.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 4000);
@@ -45,6 +47,8 @@ app.use('/api/mom', momRoutes);
 app.use('/api/approvals', approvalsRoutes);
 app.use('/api/budgets', budgetsRoutes);
 app.use('/api/goals', goalsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/settings', settingsRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
 
