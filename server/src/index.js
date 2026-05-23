@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import './db.js';
 import { cleanupExpiredSessions } from './session.js';
 import authRoutes from './routes/auth.js';
+import ratesRoutes from './routes/rates.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 4000);
@@ -33,6 +34,7 @@ if (!IS_PROD) {
 }
 
 app.use('/api/auth', authRoutes);
+app.use('/api/rates', ratesRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
 
