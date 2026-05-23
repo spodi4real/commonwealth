@@ -17,6 +17,7 @@ import budgetsRoutes from './routes/budgets.js';
 import goalsRoutes from './routes/goals.js';
 import dashboardRoutes from './routes/dashboard.js';
 import settingsRoutes from './routes/settings.js';
+import pendingDesiresRoutes from './routes/pending-desires.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 4000);
@@ -49,6 +50,7 @@ app.use('/api/budgets', budgetsRoutes);
 app.use('/api/goals', goalsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/pending-desires', pendingDesiresRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
 

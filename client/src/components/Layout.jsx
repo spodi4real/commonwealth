@@ -14,11 +14,12 @@ export function Shell({ children, footer }) {
 }
 
 const OWNER_NAV = [
-  { to: '/owner',              label: 'Dashboard',    end: true },
-  { to: '/owner/transactions', label: 'Allocations' },
-  { to: '/owner/budgets',      label: 'Budgets' },
-  { to: '/owner/goals',        label: 'Goals' },
-  { to: '/owner/rates',        label: 'Rates' },
+  { to: '/owner',                 label: 'Dashboard',    end: true },
+  { to: '/owner/transactions',    label: 'Allocations' },
+  { to: '/owner/pending-desires', label: 'Pending' },
+  { to: '/owner/budgets',         label: 'Budgets' },
+  { to: '/owner/goals',           label: 'Goals' },
+  { to: '/owner/rates',           label: 'Rates' },
 ];
 
 function OwnerNav() {
