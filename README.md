@@ -54,14 +54,34 @@ Then peers visit `http://<tailscale-ip>:4000`. No external exposure required.
 
 ## Phase status
 
-- [x] Phase 1 — Skeleton: auth, DB, force-change PIN on first login
-- [ ] Phase 2 — Exchange rate system
-- [ ] Phase 3 — Transaction CRUD
-- [ ] Phase 4 — Mom's "Can I spend this?" flow
-- [ ] Phase 5 — Budgets
-- [ ] Phase 6 — Goals + savings lock
-- [ ] Phase 7 — Owner dashboard + KPIs
-- [ ] Phase 8 — Decision friction engine
-- [ ] Phase 9 — Data-maturity-gated reports
-- [ ] Phase 10 — Daily principles + monthly reviews
-- [ ] Phase 11 — Polish
+- [x] Phase 1  — Skeleton: auth, DB, force-change PIN on first login
+- [x] Phase 2  — Exchange rate system
+- [x] Phase 3  — Transaction CRUD
+- [x] Phase 4  — Mom's "Can I spend this?" flow + Owner approvals
+- [x] Phase 5  — Budgets + burn-rate dashboard
+- [x] Phase 6  — Goals + contributions + maturity-gated projections
+- [x] Phase 7  — Owner dashboard with KPIs + data maturity
+- [x] Phase 8  — Decision Friction Engine + Pending Desires
+- [x] Phase 9  — Data-maturity-gated reports
+- [x] Phase 10 — Monthly review prompt + Wealth Journal
+- [x] Phase 11 — Polish: Settings page, refined monogram, nav, base styles
+
+## First-time usage
+
+1. Run `npm install && npm run seed && npm run dev`.
+2. Open `http://localhost:5173`.
+3. Sign in as **Owner** with PIN `0000` — you'll be forced to set a new PIN.
+4. Set today's **exchange rate** on the dashboard (e.g. 1500) — nothing else
+   prices correctly without it.
+5. Visit **Settings** to confirm monthly income, friction threshold, and
+   Mom's auto-approve / hard-limit floors.
+6. Log a few **Allocations** to start filling the ledger. Anything ≥ the
+   friction threshold triggers the justification ritual; Wants that "can
+   wait" move to **Pending Desires** instead.
+7. Sign out, sign in as **Mom** with PIN `0000`, set her PIN, and try
+   "Can I spend this?" — small amounts go green, medium amounts hit AMBER
+   and queue for Owner's approval back on the Owner dashboard.
+
+Reports unlock as your transaction history matures (30 / 60 / 90 / 180 / 365
+days). The Wealth Journal prompts a five-question monthly review on the
+first of each new month and stores it for you to re-read years later.
