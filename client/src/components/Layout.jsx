@@ -20,6 +20,7 @@ const OWNER_NAV = [
   { to: '/owner/budgets',         label: 'Budgets' },
   { to: '/owner/goals',           label: 'Goals' },
   { to: '/owner/reports',         label: 'Reports' },
+  { to: '/owner/journal',         label: 'Journal' },
   { to: '/owner/rates',           label: 'Rates' },
 ];
 

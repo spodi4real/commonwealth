@@ -4,17 +4,24 @@ import { api } from '../lib/api.js';
 import { fmtUSD, fmtIQD, fmtDate, fmtRelativeDate, todayISO } from '../lib/format.js';
 import { AuthedShell } from '../components/Layout.jsx';
 import { PendingApprovals } from '../components/PendingApprovals.jsx';
+import { ReviewModal } from '../components/ReviewModal.jsx';
 import { useAuth } from '../lib/session.jsx';
 
 export default function OwnerDashboard() {
   const { user } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [reviewPrompt, setReviewPrompt] = useState(null);
+  const [showReview, setShowReview] = useState(false);
 
   const load = async () => {
     try {
-      const r = await api.get('/api/dashboard');
-      setData(r);
+      const [d, p] = await Promise.all([
+        api.get('/api/dashboard'),
+        api.get('/api/reviews/prompt').catch(() => null),
+      ]);
+      setData(d);
+      setReviewPrompt(p);
     } finally { setLoading(false); }
   };
   useEffect(() => {
@@ -39,6 +46,10 @@ export default function OwnerDashboard() {
           )}
         </header>
 
+        {reviewPrompt?.needs_review && (
+          <ReviewPromptBanner month={reviewPrompt.month} onOpen={() => setShowReview(true)} />
+        )}
+
         {data?.principle && <DailyPrinciple text={data.principle.text} />}
 
         <PendingApprovals onChange={load} />
@@ -57,7 +68,33 @@ export default function OwnerDashboard() {
           <div className="text-inkDim text-center py-10">Loading dashboard…</div>
         )}
       </div>
+
+      {showReview && reviewPrompt && (
+        <ReviewModal
+          month={reviewPrompt.month}
+          questions={reviewPrompt.questions}
+          onClose={() => setShowReview(false)}
+          onSaved={async () => { setShowReview(false); await load(); }}
+        />
+      )}
     </AuthedShell>
+  );
+}
+
+function ReviewPromptBanner({ month, onOpen }) {
+  return (
+    <div className="cw-card border-l-2 border-gold p-5 flex items-center justify-between gap-4 flex-wrap">
+      <div>
+        <div className="cw-label text-gold">Monthly review · {month}</div>
+        <p className="text-ink mt-1 text-sm leading-relaxed max-w-xl">
+          Five honest sentences before the new month carries you forward.
+          What gets reviewed compounds.
+        </p>
+      </div>
+      <button onClick={onOpen} className="cw-btn-primary text-sm">
+        Begin review →
+      </button>
+    </div>
   );
 }
 
