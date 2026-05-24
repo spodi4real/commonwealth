@@ -39,6 +39,14 @@ export function getSession(token) {
   };
 }
 
+// Returns true if first-run setup hasn't been completed yet. Only relevant
+// for the Owner — Mom doesn't go through the wizard.
+export function isSetupComplete() {
+  const row = db.prepare("SELECT value FROM settings WHERE key = 'setup_complete'").get();
+  if (!row) return false;
+  try { return JSON.parse(row.value) === true; } catch { return false; }
+}
+
 export function destroySession(token) {
   if (!token) return;
   db.prepare('DELETE FROM sessions WHERE token = ?').run(token);

@@ -50,6 +50,7 @@ export default function Goals() {
 
 function GoalCard({ goal, onChange }) {
   const [contributing, setContributing] = useState(false);
+  const [editingContrib, setEditingContrib] = useState(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState([]);
 
@@ -126,8 +127,12 @@ function GoalCard({ goal, onChange }) {
                     <span className="font-mono">{fmtUSD(h.amount_usd_cents)}</span>
                     <span className="text-inkDim text-xs ml-2">{fmtRelativeDate(h.contributed_at)}</span>
                   </span>
-                  <button onClick={() => removeContribution(h.id)}
-                    className="text-inkDim hover:text-danger text-xs">Remove</button>
+                  <span className="flex gap-3">
+                    <button onClick={() => setEditingContrib(h)}
+                      className="text-inkDim hover:text-ink text-xs">Edit</button>
+                    <button onClick={() => removeContribution(h.id)}
+                      className="text-inkDim hover:text-danger text-xs">Remove</button>
+                  </span>
                 </li>
               ))}
             </ul>
@@ -140,6 +145,15 @@ function GoalCard({ goal, onChange }) {
           goal={goal}
           onClose={() => setContributing(false)}
           onSaved={async () => { setContributing(false); await onChange(); if (historyOpen) await loadHistory(); }}
+        />
+      )}
+
+      {editingContrib && (
+        <ContributeModal
+          goal={goal}
+          editing={editingContrib}
+          onClose={() => setEditingContrib(null)}
+          onSaved={async () => { setEditingContrib(null); await onChange(); await loadHistory(); }}
         />
       )}
     </div>
@@ -194,9 +208,10 @@ function NewGoalModal({ onClose, onSaved }) {
   );
 }
 
-function ContributeModal({ goal, onClose, onSaved }) {
-  const [usd, setUsd] = useState('');
-  const [date, setDate] = useState(todayISO());
+function ContributeModal({ goal, editing, onClose, onSaved }) {
+  const isEdit = !!editing;
+  const [usd, setUsd] = useState(isEdit ? (editing.amount_usd_cents / 100).toFixed(2) : '');
+  const [date, setDate] = useState(isEdit ? String(editing.contributed_at).slice(0, 10) : todayISO());
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
 
@@ -204,17 +219,16 @@ function ContributeModal({ goal, onClose, onSaved }) {
     e.preventDefault();
     setBusy(true); setErr(null);
     try {
-      await api.post(`/api/goals/${goal.id}/contributions`, {
-        amount_usd: parseFloat(usd),
-        contributed_at: date,
-      });
+      const body = { amount_usd: parseFloat(usd), contributed_at: date };
+      if (isEdit) await api.put(`/api/goals/contributions/${editing.id}`, body);
+      else        await api.post(`/api/goals/${goal.id}/contributions`, body);
       await onSaved();
     } catch (e) { setErr(e.message); }
     finally { setBusy(false); }
   };
 
   return (
-    <ModalShell onClose={onClose} title={`Contribute to ${goal.name}`}>
+    <ModalShell onClose={onClose} title={isEdit ? `Edit contribution to ${goal.name}` : `Contribute to ${goal.name}`}>
       <form onSubmit={submit} className="space-y-4">
         <div>
           <label className="cw-label block mb-1">Amount (USD)</label>
@@ -235,7 +249,7 @@ function ContributeModal({ goal, onClose, onSaved }) {
         {err && <div className="text-danger text-sm">{err}</div>}
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className="cw-btn-ghost">Cancel</button>
-          <button disabled={busy} className="cw-btn-primary">{busy ? '…' : 'Contribute'}</button>
+          <button disabled={busy} className="cw-btn-primary">{busy ? '…' : (isEdit ? 'Save changes' : 'Contribute')}</button>
         </div>
       </form>
     </ModalShell>

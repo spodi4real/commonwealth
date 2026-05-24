@@ -124,6 +124,53 @@ CREATE TABLE IF NOT EXISTS settings (
   value      TEXT NOT NULL,
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- A snapshot of where the user actually keeps money. Not auto-decremented by
+-- transactions — the user reconciles balances themselves whenever they want.
+-- "Total wealth" = sum of cash_accounts + sum of goal_contributions.
+CREATE TABLE IF NOT EXISTS cash_accounts (
+  id                INTEGER PRIMARY KEY,
+  name              TEXT NOT NULL,
+  type              TEXT NOT NULL CHECK(type IN ('cash_iqd','cash_usd','bank','other')),
+  balance_usd_cents INTEGER NOT NULL DEFAULT 0,
+  balance_iqd       INTEGER,                      -- for fidelity on IQD-native accounts
+  notes             TEXT,
+  created_at        TEXT NOT NULL DEFAULT (datetime('now')),
+  archived_at       TEXT
+);
+
+-- Income shape: a SOURCE describes a recurring pattern (e.g. "Primary Salary,
+-- ~$1000, around the 28th"). An ENTRY records an actual receipt event.
+-- Entries are the source of truth for KPI calculations — sources only inform
+-- the "expected" forecast.
+CREATE TABLE IF NOT EXISTS income_sources (
+  id                          INTEGER PRIMARY KEY,
+  name                        TEXT NOT NULL,
+  type                        TEXT NOT NULL CHECK(type IN ('salary','bonus','freelance','gift','refund','other')),
+  expected_amount_usd_cents   INTEGER NOT NULL DEFAULT 0,
+  is_recurring                INTEGER NOT NULL DEFAULT 0,
+  expected_day_of_month       INTEGER,
+  is_active                   INTEGER NOT NULL DEFAULT 1,
+  created_at                  TEXT NOT NULL DEFAULT (datetime('now')),
+  archived_at                 TEXT
+);
+
+CREATE TABLE IF NOT EXISTS income_entries (
+  id                          INTEGER PRIMARY KEY,
+  source_id                   INTEGER REFERENCES income_sources(id),
+  amount_usd_cents            INTEGER NOT NULL,
+  received_date               TEXT NOT NULL,    -- YYYY-MM-DD
+  expected_date               TEXT,
+  expected_amount_usd_cents   INTEGER,
+  note                        TEXT,
+  status                      TEXT NOT NULL DEFAULT 'received'
+                              CHECK(status IN ('received','partial','pending','overdue','missed')),
+  created_at                  TEXT NOT NULL DEFAULT (datetime('now')),
+  deleted_at                  TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_income_received ON income_entries(received_date);
+CREATE INDEX IF NOT EXISTS idx_income_source   ON income_entries(source_id);
+CREATE INDEX IF NOT EXISTS idx_income_deleted  ON income_entries(deleted_at);
 `;
 
 db.exec(SCHEMA);

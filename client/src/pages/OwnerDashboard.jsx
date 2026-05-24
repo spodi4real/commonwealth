@@ -52,6 +52,8 @@ export default function OwnerDashboard() {
 
         {data?.principle && <DailyPrinciple text={data.principle.text} />}
 
+        <OverdueIncomeBanner overdue={data?.overdue_income} />
+
         <PendingApprovals onChange={load} />
 
         <div className="grid md:grid-cols-3 gap-6">
@@ -109,11 +111,13 @@ function DailyPrinciple({ text }) {
 
 function NetPositionCard({ data }) {
   if (!data) return <SkeletonCard />;
-  const income = data.income_usd_cents;
+  const actual = data.actual_income_this_month_usd_cents;
+  const expected = data.expected_income_this_month_usd_cents;
   const spent = data.spent_usd_cents;
   const net = data.net_usd_cents;
   const ratePct = (data.savings_rate * 100).toFixed(0);
-  const overspending = data.projected_month_spend_cents > income;
+  const overspending = actual > 0 && data.projected_month_spend_cents > actual;
+  const incomeGap = expected > 0 && actual < expected;
 
   return (
     <div className="cw-card p-5">
@@ -122,20 +126,54 @@ function NetPositionCard({ data }) {
         {net >= 0 ? '+' : ''}{fmtUSD(net)}
       </div>
       <div className="text-xs text-inkDim mt-2 space-y-0.5">
-        <div>Income: <span className="font-mono text-ink">{fmtUSD(income)}</span></div>
+        <div>
+          Income received:{' '}
+          <span className="font-mono text-ink">{fmtUSD(actual)}</span>
+          {expected > 0 && (
+            <span className="text-inkDim/60"> / {fmtUSD(expected)} expected</span>
+          )}
+        </div>
         <div>Allocated: <span className="font-mono text-ink">{fmtUSD(spent)}</span></div>
         <div>
           Savings rate:{' '}
           <span className={`font-mono ${data.savings_rate >= 0.2 ? 'text-success' : data.savings_rate >= 0 ? 'text-warning' : 'text-danger'}`}>
-            {ratePct}%
+            {actual > 0 ? `${ratePct}%` : '—'}
           </span>
         </div>
+        {incomeGap && (
+          <div className="text-warning pt-1">
+            ⚠ {fmtUSD(expected - actual)} of expected income not yet received.
+          </div>
+        )}
         {overspending && (
           <div className="text-warning pt-1">
             ⚠ At today's pace, this month projects to {fmtUSD(data.projected_month_spend_cents)}.
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function OverdueIncomeBanner({ overdue }) {
+  if (!overdue?.length) return null;
+  return (
+    <div className="cw-card border-l-2 border-warning p-4">
+      <div className="cw-label text-warning">Income overdue</div>
+      <div className="mt-2 space-y-1 text-sm">
+        {overdue.map((o) => (
+          <div key={`${o.source_id}-${o.month}`}>
+            <span className="font-serif text-base">{o.source_name}</span>
+            <span className="text-inkDim ml-2">
+              is <span className="text-warning">{o.days_overdue} day{o.days_overdue === 1 ? '' : 's'} late</span>
+              {' '}({fmtUSD(o.expected_amount_usd_cents)} expected {fmtDate(o.expected_date)})
+            </span>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-inkDim mt-2 italic">
+        Projections use actual receipts, not expected.
+      </p>
     </div>
   );
 }
@@ -175,26 +213,33 @@ function Bar({ on, label }) {
 
 function KpiStrip({ data }) {
   if (!data) return null;
+  const rel = data.income_reliability_score;
+  const delay = data.avg_income_delay_days;
   const kpis = [
     {
-      label: 'Avg daily allocation',
-      value: fmtUSD(data.avg_daily_spend_cents, { cents: true }),
-    },
-    {
-      label: 'Total capital deployed',
+      label: 'Total wealth',
       value: fmtUSD(data.total_wealth_cents),
       tone: 'text-gold',
+      sub: `cash ${fmtUSD(data.total_cash_usd_cents)} + goals ${fmtUSD(data.total_goal_capital_usd_cents)}`,
     },
     {
       label: 'Months of runway',
       value: data.months_of_runway == null
         ? '—'
         : data.months_of_runway > 999 ? '∞' : data.months_of_runway.toFixed(1),
+      sub: 'cash ÷ avg monthly spend',
+    },
+    {
+      label: 'Income reliability',
+      value: rel == null ? '—' : `${Math.round(rel * 100)}%`,
+      tone: rel == null ? 'text-inkDim' : rel >= 0.9 ? 'text-success' : rel >= 0.6 ? 'text-warning' : 'text-danger',
+      sub: delay != null ? `avg ${delay >= 0 ? '+' : ''}${delay.toFixed(0)}d delay` : 'last 6 months',
     },
     {
       label: 'Saved by friction · month',
       value: fmtUSD(data.saved_by_friction_this_month_cents),
       tone: data.saved_by_friction_this_month_cents > 0 ? 'text-success' : 'text-inkDim',
+      sub: `avg daily allocation ${fmtUSD(data.avg_daily_spend_cents, { cents: true })}`,
     },
   ];
   return (
@@ -203,6 +248,7 @@ function KpiStrip({ data }) {
         <div key={k.label} className="cw-card p-4">
           <div className="cw-label">{k.label}</div>
           <div className={`font-serif text-2xl mt-1 ${k.tone ?? 'text-ink'}`}>{k.value}</div>
+          {k.sub && <div className="text-[10px] text-inkDim mt-1 truncate" title={k.sub}>{k.sub}</div>}
         </div>
       ))}
     </div>

@@ -20,6 +20,9 @@ import settingsRoutes from './routes/settings.js';
 import pendingDesiresRoutes from './routes/pending-desires.js';
 import reportsRoutes from './routes/reports.js';
 import reviewsRoutes from './routes/reviews.js';
+import incomeRoutes from './routes/income.js';
+import cashRoutes from './routes/cash.js';
+import setupRoutes from './routes/setup.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 4000);
@@ -55,6 +58,9 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/pending-desires', pendingDesiresRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/reviews', reviewsRoutes);
+app.use('/api/income', incomeRoutes);
+app.use('/api/cash', cashRoutes);
+app.use('/api/setup', setupRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
 

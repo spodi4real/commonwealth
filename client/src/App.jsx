@@ -11,6 +11,8 @@ import PendingDesires from './pages/PendingDesires.jsx';
 import Reports from './pages/Reports.jsx';
 import Journal from './pages/Journal.jsx';
 import Settings from './pages/Settings.jsx';
+import Wizard from './pages/Wizard.jsx';
+import Income from './pages/Income.jsx';
 import MomDashboard from './pages/MomDashboard.jsx';
 
 function Loading() {
@@ -29,6 +31,12 @@ function RequireAuth({ children, role }) {
   if (user.mustChangePin && loc.pathname !== '/change-pin') {
     return <Navigate to="/change-pin" replace />;
   }
+  // Owner must complete first-run setup before any other screen loads.
+  // Mom never sees the wizard.
+  if (user.role === 'owner' && user.setupComplete === false
+      && loc.pathname !== '/owner/wizard' && loc.pathname !== '/change-pin') {
+    return <Navigate to="/owner/wizard" replace />;
+  }
   if (role && user.role !== role) {
     return <Navigate to={user.role === 'owner' ? '/owner' : '/mom'} replace />;
   }
@@ -40,6 +48,7 @@ function RootRedirect() {
   if (loading) return <Loading />;
   if (!user) return <Navigate to="/login" replace />;
   if (user.mustChangePin) return <Navigate to="/change-pin" replace />;
+  if (user.role === 'owner' && user.setupComplete === false) return <Navigate to="/owner/wizard" replace />;
   return <Navigate to={user.role === 'owner' ? '/owner' : '/mom'} replace />;
 }
 
@@ -125,6 +134,22 @@ export default function App() {
         element={
           <RequireAuth role="owner">
             <Settings />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/owner/wizard"
+        element={
+          <RequireAuth role="owner">
+            <Wizard />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/owner/income"
+        element={
+          <RequireAuth role="owner">
+            <Income />
           </RequireAuth>
         }
       />

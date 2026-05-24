@@ -29,6 +29,8 @@ export function allSettings() {
 
 // Canonical keys.
 export const SETTING_MONTHLY_INCOME_USD_CENTS = 'monthly_income_usd_cents';
-export const SETTING_FRICTION_THRESHOLD_USD = 'friction_threshold_usd';
-export const SETTING_MOM_AUTO_APPROVE_USD = 'mom_auto_approve_usd';
-export const SETTING_MOM_HARD_LIMIT_USD = 'mom_hard_limit_usd';
+export const SETTING_FRICTION_THRESHOLD_USD   = 'friction_threshold_usd';
+export const SETTING_MOM_AUTO_APPROVE_USD     = 'mom_auto_approve_usd';
+export const SETTING_MOM_HARD_LIMIT_USD       = 'mom_hard_limit_usd';
+export const SETTING_SETUP_COMPLETE           = 'setup_complete';
+export const SETTING_OPENING_DATE             = 'opening_date';  // when Current Position was first established

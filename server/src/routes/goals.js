@@ -103,6 +103,34 @@ router.post('/:id/contributions', requireAuth, requireRole('owner'), requirePinC
   res.json({ contribution: row });
 });
 
+router.put('/contributions/:cid', requireAuth, requireRole('owner'), requirePinChanged, (req, res) => {
+  const cid = Number(req.params.cid);
+  const existing = db.prepare('SELECT * FROM goal_contributions WHERE id = ?').get(cid);
+  if (!existing) return res.status(404).json({ error: 'not found' });
+
+  let cents = existing.amount_usd_cents;
+  if (Number.isFinite(req.body?.amount_usd_cents)) cents = Math.round(req.body.amount_usd_cents);
+  else if (Number.isFinite(req.body?.amount_usd))  cents = Math.round(req.body.amount_usd * 100);
+  if (cents <= 0) return res.status(400).json({ error: 'amount must be positive' });
+
+  let when = existing.contributed_at;
+  const cd = req.body?.contributed_at;
+  if (cd && /^\d{4}-\d{2}-\d{2}/.test(cd)) {
+    when = cd.length === 10 ? `${cd} 00:00:00` : cd;
+  }
+
+  db.prepare(
+    'UPDATE goal_contributions SET amount_usd_cents = ?, contributed_at = ? WHERE id = ?'
+  ).run(cents, when, cid);
+
+  const after = db.prepare('SELECT * FROM goal_contributions WHERE id = ?').get(cid);
+  db.prepare(
+    `INSERT INTO audit_log (user_id, action, entity, before_json, after_json)
+     VALUES (?, 'update', 'goal_contributions', ?, ?)`
+  ).run(req.user.id, JSON.stringify(existing), JSON.stringify(after));
+  res.json({ contribution: after });
+});
+
 router.delete('/contributions/:cid', requireAuth, requireRole('owner'), requirePinChanged, (req, res) => {
   const cid = Number(req.params.cid);
   const row = db.prepare('SELECT * FROM goal_contributions WHERE id = ?').get(cid);

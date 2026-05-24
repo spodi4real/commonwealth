@@ -6,6 +6,7 @@ import {
   destroySession,
   COOKIE_NAME,
   cookieOptions,
+  isSetupComplete,
 } from '../session.js';
 import { requireAuth } from '../middleware/auth.js';
 
@@ -37,6 +38,7 @@ router.post('/login', (req, res) => {
       name: user.name,
       role: user.role,
       mustChangePin: !!user.must_change_pin,
+      setupComplete: isSetupComplete(),
     },
   });
 });
@@ -49,7 +51,7 @@ router.post('/logout', (req, res) => {
 });
 
 router.get('/me', requireAuth, (req, res) => {
-  res.json({ user: req.user });
+  res.json({ user: { ...req.user, setupComplete: isSetupComplete() } });
 });
 
 router.post('/change-pin', requireAuth, (req, res) => {

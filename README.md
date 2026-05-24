@@ -71,16 +71,35 @@ Then peers visit `http://<tailscale-ip>:4000`. No external exposure required.
 1. Run `npm install && npm run seed && npm run dev`.
 2. Open `http://localhost:5173`.
 3. Sign in as **Owner** with PIN `0000` — you'll be forced to set a new PIN.
-4. Set today's **exchange rate** on the dashboard (e.g. 1500) — nothing else
-   prices correctly without it.
-5. Visit **Settings** to confirm monthly income, friction threshold, and
-   Mom's auto-approve / hard-limit floors.
-6. Log a few **Allocations** to start filling the ledger. Anything ≥ the
+4. **First-run Wizard** runs automatically: rate → cash position → opening
+   savings → primary income source → review → finish. The dashboard lands
+   already grounded in your reality.
+5. Log a few **Allocations** to start filling the ledger. Anything ≥ the
    friction threshold triggers the justification ritual; Wants that "can
    wait" move to **Pending Desires** instead.
+6. Log income on the **Income** page when it arrives — you'll be prompted
+   to pay yourself first (allocate any portion straight to a goal).
 7. Sign out, sign in as **Mom** with PIN `0000`, set her PIN, and try
    "Can I spend this?" — small amounts go green, medium amounts hit AMBER
    and queue for Owner's approval back on the Owner dashboard.
+
+### v1.1 — Reality grounding
+
+- **First-run Wizard** seeds your actual starting position (exchange rate,
+  cash accounts, opening savings, primary income source).
+- **Cash accounts** snapshot where your money actually sits (cash IQD, cash
+  USD, bank). Editable from Settings → Current position.
+- **Income system** with sources + entries: log actual receipts (received,
+  partial, pending, overdue, missed). KPIs use real income, not assumed.
+- **Pay-yourself-first ritual** fires on every received income entry —
+  allocate to goals before money gets absorbed into spending.
+- **Reliability score** over the last six months: % of expected paychecks
+  received on time and in full. **Avg delay days** alongside.
+- **Overdue income banner** on the dashboard the moment an expected
+  paycheck is past due.
+- **Owner edits anything**: contributions, income entries, cash accounts,
+  approvals — all with full `audit_log` entries.
+- **Mom is read-only on her own purchases**; she asks Owner to amend.
 
 Reports unlock as your transaction history matures (30 / 60 / 90 / 180 / 365
 days). The Wealth Journal prompts a five-question monthly review on the

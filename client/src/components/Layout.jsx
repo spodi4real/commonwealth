@@ -15,6 +15,7 @@ export function Shell({ children, footer }) {
 
 const OWNER_NAV = [
   { to: '/owner',                 label: 'Dashboard',    end: true },
+  { to: '/owner/income',          label: 'Income' },
   { to: '/owner/transactions',    label: 'Allocations' },
   { to: '/owner/pending-desires', label: 'Pending' },
   { to: '/owner/budgets',         label: 'Budgets' },

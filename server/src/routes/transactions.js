@@ -135,9 +135,10 @@ router.put('/:id', requireAuth, requirePinChanged, (req, res) => {
   const existing = db.prepare('SELECT * FROM transactions WHERE id = ?').get(id);
   if (!existing || existing.deleted_at) return res.status(404).json({ error: 'not found' });
 
-  // Mom can only edit her own.
-  if (req.user.role === 'mom' && existing.user_id !== req.user.id) {
-    return res.status(403).json({ error: 'forbidden' });
+  // Per v1.1 spec: Mom is read-only on her own logged purchases.
+  // Owner edits anything. Mom asks Owner via the approvals queue.
+  if (req.user.role === 'mom') {
+    return res.status(403).json({ error: 'ask Owner to edit this' });
   }
 
   const { amount_usd_cents, amount_usd, category, note, type, created_at } = req.body ?? {};
@@ -199,8 +200,9 @@ router.delete('/:id', requireAuth, requirePinChanged, (req, res) => {
   const existing = db.prepare('SELECT * FROM transactions WHERE id = ?').get(id);
   if (!existing || existing.deleted_at) return res.status(404).json({ error: 'not found' });
 
-  if (req.user.role === 'mom' && existing.user_id !== req.user.id) {
-    return res.status(403).json({ error: 'forbidden' });
+  // Same rule as edit: Mom is read-only on her own purchases.
+  if (req.user.role === 'mom') {
+    return res.status(403).json({ error: 'ask Owner to remove this' });
   }
 
   db.prepare('UPDATE transactions SET deleted_at = datetime(\'now\') WHERE id = ?').run(id);

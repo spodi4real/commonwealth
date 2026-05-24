@@ -2,9 +2,9 @@ import { db } from '../db.js';
 import {
   currentMonth, monthBounds, daysInMonth, ymd,
 } from './dates.js';
-import { getSetting, SETTING_MONTHLY_INCOME_USD_CENTS } from './settings.js';
 import { getDataMaturity } from './maturity.js';
 import { momUserId } from './budgets.js';
+import { actualThisMonth, effectiveMonthlyIncome } from './income.js';
 
 // All-in-one report builder. Returns null sections for insights that are
 // still locked by data maturity — the client renders a "unlocks at N days"
@@ -24,7 +24,11 @@ export function getReports({ month }) {
     )
     .all(start, endExclusive);
 
-  const income = Number(getSetting(SETTING_MONTHLY_INCOME_USD_CENTS, 0));
+  // Use actual income received this month (not a hard-coded assumption).
+  // Falls back to effective income (3-month rolling avg) when actual is zero,
+  // so the savings rate isn't misleading for the current in-progress month.
+  const actual = actualThisMonth(month);
+  const income = actual > 0 ? actual : effectiveMonthlyIncome();
   const allocated = txns.reduce((s, t) => s + t.amount_usd_cents, 0);
   const saved = income - allocated;
   const savings_rate = income > 0 ? saved / income : 0;
