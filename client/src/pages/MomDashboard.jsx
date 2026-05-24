@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api.js';
-import { fmtIQD } from '../lib/format.js';
+import { fmtIQD, fmtRelativeDate } from '../lib/format.js';
 import { MOM_CATEGORIES } from '../lib/categories.js';
 import { AuthedShell } from '../components/Layout.jsx';
 
 export default function MomDashboard() {
-  const [tab, setTab] = useState('ask'); // ask | log
+  const [tab, setTab] = useState('ask'); // ask | log | recent
   const [allowance, setAllowance] = useState(null);
 
   const loadAllowance = async () => {
@@ -19,17 +19,21 @@ export default function MomDashboard() {
       <div className="max-w-lg mx-auto space-y-6">
         <AllowanceBar data={allowance} />
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <TabButton active={tab === 'ask'} onClick={() => setTab('ask')}>
-            Can I spend this?
+            Can I spend?
           </TabButton>
           <TabButton active={tab === 'log'} onClick={() => setTab('log')}>
-            I spent this
+            I spent
+          </TabButton>
+          <TabButton active={tab === 'recent'} onClick={() => setTab('recent')}>
+            Recent
           </TabButton>
         </div>
 
         {tab === 'ask' && <CanISpend onChange={loadAllowance} />}
         {tab === 'log' && <ISpent onChange={loadAllowance} />}
+        {tab === 'recent' && <RecentMine onChange={loadAllowance} />}
       </div>
     </AuthedShell>
   );
@@ -39,7 +43,7 @@ function TabButton({ active, onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className={`py-3 rounded font-medium transition-colors ${
+      className={`py-3 px-2 rounded font-medium text-sm transition-colors ${
         active
           ? 'bg-surface2 text-ink ring-1 ring-gold'
           : 'text-inkDim hover:text-ink hover:bg-surface2'
@@ -52,11 +56,10 @@ function TabButton({ active, onClick, children }) {
 
 function AllowanceBar({ data }) {
   const tone =
-    data?.status === 'green'  ? 'border-success bg-success/10  text-success'  :
-    data?.status === 'amber'  ? 'border-warning bg-warning/10  text-warning'  :
-    data?.status === 'red'    ? 'border-danger  bg-danger/10   text-danger'   :
-                                 'border-line    bg-surface     text-inkDim';
-
+    data?.status === 'green'  ? 'border-success bg-success/10 text-success' :
+    data?.status === 'amber'  ? 'border-warning bg-warning/10 text-warning' :
+    data?.status === 'red'    ? 'border-danger  bg-danger/10  text-danger'  :
+                                 'border-line    bg-surface    text-inkDim';
   return (
     <div className={`cw-card border-2 p-4 text-center ${tone}`}>
       <div className="cw-label">Today's allowance</div>
@@ -91,7 +94,6 @@ function CanISpend({ onChange }) {
   const [reqId, setReqId] = useState(null);
   const [pendingReq, setPendingReq] = useState(null);
 
-  // Poll for amber-request resolution.
   useEffect(() => {
     if (!reqId) return;
     let live = true;
@@ -105,7 +107,7 @@ function CanISpend({ onChange }) {
           setResult({
             verdict: request.status === 'approved' ? 'green' : 'red',
             reason: request.status === 'approved'
-              ? `Owner approved.${request.owner_note ? ` "${request.owner_note}"` : ''} You can spend it now — then log it in "I spent this".`
+              ? `Owner approved.${request.owner_note ? ` "${request.owner_note}"` : ''} You can spend it now — then log it.`
               : `Owner denied.${request.owner_note ? ` "${request.owner_note}"` : ''}`,
             code: request.status,
           });
@@ -119,10 +121,7 @@ function CanISpend({ onChange }) {
 
   const ask = async (e) => {
     e.preventDefault();
-    setBusy(true);
-    setResult(null);
-    setPendingReq(null);
-    setReqId(null);
+    setBusy(true); setResult(null); setPendingReq(null); setReqId(null);
     try {
       const n = parseFloat(amount);
       const r = await api.post('/api/mom/can-i-spend', { amount_iqd: n, category });
@@ -134,9 +133,7 @@ function CanISpend({ onChange }) {
       onChange?.();
     } catch (e) {
       setResult({ verdict: 'red', reason: e.message });
-    } finally {
-      setBusy(false);
-    }
+    } finally { setBusy(false); }
   };
 
   const reset = () => { setResult(null); setReqId(null); setPendingReq(null); setAmount(''); };
@@ -159,7 +156,7 @@ function CanISpend({ onChange }) {
         <div className="grid grid-cols-3 gap-2">
           {MOM_CATEGORIES.map((c) => (
             <button key={c} type="button" onClick={() => setCategory(c)}
-              className={`py-2 rounded text-sm transition-colors ${
+              className={`py-3 rounded text-sm transition-colors ${
                 category === c
                   ? 'bg-surface2 text-ink ring-1 ring-gold'
                   : 'bg-surface2/40 text-inkDim hover:text-ink hover:bg-surface2'
@@ -185,22 +182,15 @@ function VerdictScreen({ result, pending, onReset }) {
     result.verdict === 'amber' ? 'Wait — asking Owner' :
                                   'Not this month';
   const icon = result.verdict === 'green' ? '✓' : result.verdict === 'amber' ? '⋯' : '✕';
-
   const isWaiting = result.verdict === 'amber' && pending?.status === 'pending';
 
   return (
-    <div className={`cw-card border-2 p-8 text-center ${tone}`}>
+    <div className={`cw-card border-2 p-8 text-center ${tone} cw-fade-in`}>
       <div className="text-6xl mb-2">{icon}</div>
       <h2 className="font-serif text-3xl">{headline}</h2>
       <p className="mt-3 text-base opacity-90 leading-relaxed">{result.reason}</p>
-
-      {isWaiting && (
-        <div className="mt-4 text-xs opacity-70">
-          Checking back every few seconds…
-        </div>
-      )}
-
-      <button onClick={onReset} className="cw-btn-primary mt-6 w-full">
+      {isWaiting && <div className="mt-4 text-xs opacity-70">Checking back every few seconds…</div>}
+      <button onClick={onReset} className="cw-btn-primary mt-6 w-full py-3">
         {isWaiting ? 'Cancel and ask differently' : 'Ask again'}
       </button>
     </div>
@@ -210,31 +200,38 @@ function VerdictScreen({ result, pending, onReset }) {
 function ISpent({ onChange }) {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(MOM_CATEGORIES[0]);
+  const [name, setName] = useState('');
   const [note, setNote] = useState('');
+  const [receiptFile, setReceiptFile] = useState(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState(null);
 
   const submit = async (e) => {
     e.preventDefault();
-    setBusy(true);
-    setErr(null);
+    setBusy(true); setErr(null);
     try {
-      await api.post('/api/transactions', {
+      const r = await api.post('/api/transactions', {
         amount_iqd: parseFloat(amount),
         category,
+        name: name?.trim() || undefined,
         note: note || undefined,
       });
+      if (receiptFile && r.transaction?.id) {
+        try {
+          await api.upload(`/api/transactions/${r.transaction.id}/receipt`, receiptFile, {
+            extraFields: { label: (name?.trim() || category) },
+          });
+        } catch (e) {
+          setErr(`Logged, but receipt failed: ${e.message}`);
+        }
+      }
       setDone(true);
-      setAmount('');
-      setNote('');
+      setAmount(''); setName(''); setNote(''); setReceiptFile(null);
       onChange?.();
       setTimeout(() => setDone(false), 2000);
-    } catch (e) {
-      setErr(e.message);
-    } finally {
-      setBusy(false);
-    }
+    } catch (e) { setErr(e.message); }
+    finally { setBusy(false); }
   };
 
   return (
@@ -253,7 +250,7 @@ function ISpent({ onChange }) {
         <div className="grid grid-cols-3 gap-2">
           {MOM_CATEGORIES.map((c) => (
             <button key={c} type="button" onClick={() => setCategory(c)}
-              className={`py-2 rounded text-sm transition-colors ${
+              className={`py-3 rounded text-sm transition-colors ${
                 category === c
                   ? 'bg-surface2 text-ink ring-1 ring-gold'
                   : 'bg-surface2/40 text-inkDim hover:text-ink hover:bg-surface2'
@@ -263,12 +260,32 @@ function ISpent({ onChange }) {
         </div>
       </div>
       <div>
-        <label className="cw-label block mb-1">Note (optional)</label>
-        <input
-          value={note} onChange={(e) => setNote(e.target.value)}
-          maxLength={500}
-          className="cw-input w-full"
-        />
+        <label className="cw-label block mb-1">Name (optional)</label>
+        <input value={name} onChange={(e) => setName(e.target.value)}
+               maxLength={120} placeholder="e.g. Bread"
+               className="cw-input w-full" />
+      </div>
+      <div>
+        <label className="cw-label block mb-1">Description (optional)</label>
+        <textarea value={note} onChange={(e) => setNote(e.target.value)}
+                  rows={2} maxLength={1000}
+                  placeholder="Anything to remember about this purchase."
+                  className="cw-input w-full resize-none" />
+      </div>
+      <div>
+        <label className="cw-label block mb-1">Receipt (optional)</label>
+        <label className="cw-input w-full flex items-center gap-2 cursor-pointer">
+          <span className="text-inkDim text-sm flex-1 truncate">
+            {receiptFile?.name ?? 'Choose photo or PDF…'}
+          </span>
+          <span className="cw-btn-ghost text-xs">Browse</span>
+          <input
+            type="file" accept="image/*,application/pdf,.heic,.heif"
+            capture="environment"
+            onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
+            className="sr-only"
+          />
+        </label>
       </div>
       {err && <div className="text-danger text-sm">{err}</div>}
       <button disabled={busy || !amount}
@@ -276,5 +293,65 @@ function ISpent({ onChange }) {
         {busy ? 'Logging…' : done ? '✓ Logged' : 'Log it'}
       </button>
     </form>
+  );
+}
+
+function RecentMine({ onChange }) {
+  const [txns, setTxns] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const load = async () => {
+    setLoading(true);
+    try {
+      const r = await api.get('/api/transactions?limit=30');
+      setTxns(r.transactions);
+    } finally { setLoading(false); }
+  };
+  useEffect(() => { load().catch(() => {}); }, []);
+
+  const markReturned = async (id, name) => {
+    const what = name ? `"${name}"` : 'this purchase';
+    if (!window.confirm(`Mark ${what} as returned?`)) return;
+    await api.post(`/api/transactions/${id}/return`);
+    await load();
+    onChange?.();
+  };
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-inkDim px-1">
+        Your recent purchases. If you returned something, mark it and the money
+        comes back to your allowance.
+      </p>
+      {loading && <div className="text-inkDim text-sm text-center py-6">Loading…</div>}
+      {!loading && txns.length === 0 && (
+        <div className="cw-card p-6 text-center text-inkDim text-sm">
+          Nothing logged yet. Use "I spent" to add your first purchase.
+        </div>
+      )}
+      {txns.map((t) => (
+        <div key={t.id} className="cw-card p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="font-serif text-lg truncate">{t.name || t.category}</div>
+              <div className="text-xs text-inkDim mt-0.5">
+                {t.category} · {fmtRelativeDate(t.created_at)}
+              </div>
+              {t.note && <div className="text-xs text-inkDim mt-1 italic truncate">{t.note}</div>}
+            </div>
+            <div className="text-right">
+              <div className="font-mono">
+                {t.amount_iqd != null ? fmtIQD(t.amount_iqd) : `$${(t.amount_usd_cents / 100).toFixed(2)}`}
+              </div>
+            </div>
+          </div>
+          <div className="mt-2 flex justify-end">
+            <button onClick={() => markReturned(t.id, t.name)}
+                    className="text-warning hover:text-ink text-xs px-3 py-1.5">
+              Mark as returned
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }

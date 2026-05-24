@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url';
 
 import './db.js';
 import { cleanupExpiredSessions } from './session.js';
+import { requireAuth } from './middleware/auth.js';
+import { RECEIPTS_DIR } from './lib/uploads.js';
 import authRoutes from './routes/auth.js';
 import ratesRoutes from './routes/rates.js';
 import transactionsRoutes from './routes/transactions.js';
@@ -61,6 +63,13 @@ app.use('/api/reviews', reviewsRoutes);
 app.use('/api/income', incomeRoutes);
 app.use('/api/cash', cashRoutes);
 app.use('/api/setup', setupRoutes);
+
+// Receipts behind auth — the path is predictable enough that we don't want
+// it scrape-able. Same-origin in prod, dev proxies /receipts through Vite.
+app.use('/receipts', requireAuth, express.static(RECEIPTS_DIR, {
+  fallthrough: false,
+  maxAge: 0,
+}));
 
 app.get('/api/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
 

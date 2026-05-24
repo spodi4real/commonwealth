@@ -83,6 +83,23 @@ Then peers visit `http://<tailscale-ip>:4000`. No external exposure required.
    "Can I spend this?" — small amounts go green, medium amounts hit AMBER
    and queue for Owner's approval back on the Owner dashboard.
 
+### v1.2 — Receipts, returns, mobile feel
+
+- **Name + description** on every allocation (both Owner and Mom). Optional.
+- **Receipt upload** (photo or PDF) attached to any expense. Stored on disk
+  at `D:\CW\receipts\` (gitignored), served via authenticated `/receipts/...`.
+  Tap the 📎 icon in the ledger or use the in-modal preview to view.
+- **Mark as returned** — returns are a real, frequent event. Owner can return
+  any purchase; Mom can return her own (a deliberate exception to the
+  read-only rule). The amount stops counting against budget/spending; the
+  audit log captures it as `action='return'`.
+- **Mom gets a "Recent" tab** showing her last 30 logged purchases with a
+  Return button on each.
+- **Mobile feel** — bottom tab bar on phones (Home / Income / Log / Pending /
+  More) replaces the wrap-prone top nav. Modals are full-screen on mobile.
+  Tap targets ≥ 44px. iOS PWA-capable: "Add to Home Screen" gives a
+  standalone, status-bar-aware launch. Web app manifest included.
+
 ### v1.1 — Reality grounding
 
 - **First-run Wizard** seeds your actual starting position (exchange rate,

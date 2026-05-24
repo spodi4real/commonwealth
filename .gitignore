@@ -8,6 +8,9 @@ db/*.sqlite-journal
 db/*.sqlite-wal
 db/*.sqlite-shm
 
+# Receipts — uploaded images of purchase receipts, never commit
+receipts/
+
 # Environment
 .env
 .env.local

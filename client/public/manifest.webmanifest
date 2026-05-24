@@ -1,0 +1,15 @@
+{
+  "name": "Commonwealth",
+  "short_name": "CW",
+  "description": "A wealth-building operating system.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B1220",
+  "theme_color": "#0B1220",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

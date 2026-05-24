@@ -175,4 +175,19 @@ CREATE INDEX IF NOT EXISTS idx_income_deleted  ON income_entries(deleted_at);
 
 db.exec(SCHEMA);
 
+// Idempotent column additions. SQLite's ALTER TABLE ADD COLUMN is safe to
+// run on every boot — guard with PRAGMA table_info so re-runs are no-ops.
+function ensureColumn(table, column, definition) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (!cols.find((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
+}
+
+// v1.2 — purchases gain a name (separate from the free-form note) and an
+// optional receipt image path. Receipts live on disk at db/receipts/ —
+// the path stored is relative to that dir.
+ensureColumn('transactions', 'name',         'TEXT');
+ensureColumn('transactions', 'receipt_path', 'TEXT');
+
 export default db;

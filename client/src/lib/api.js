@@ -30,4 +30,20 @@ export const api = {
   post: (p, body)  => request(p, { method: 'POST', body }),
   put:  (p, body)  => request(p, { method: 'PUT',  body }),
   del:  (p)        => request(p, { method: 'DELETE' }),
+
+  // Upload a single file as multipart/form-data. Field name on the server is
+  // 'receipt'; pass an optional `label` to suggest the filename.
+  upload: async (path, file, { fieldName = 'receipt', extraFields = {} } = {}) => {
+    const fd = new FormData();
+    fd.append(fieldName, file);
+    for (const [k, v] of Object.entries(extraFields)) fd.append(k, v);
+    const res = await fetch(path, { method: 'POST', credentials: 'include', body: fd });
+    const text = await res.text();
+    const data = text ? safeJson(text) : null;
+    if (!res.ok) {
+      const err = new Error(data?.error || `upload failed (${res.status})`);
+      err.status = res.status; err.data = data; throw err;
+    }
+    return data;
+  },
 };
