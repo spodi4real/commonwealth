@@ -17,7 +17,7 @@ export const SAVINGS_CATEGORIES = [
 
 export const MOM_CATEGORIES = ['Food', 'Household', 'Personal', 'Transport', 'Other'];
 
-export const MOM_BUDGET_LABEL = "Mom's Spending";
+export const MOM_BUDGET_LABEL = 'Family spending';
 
 export const OWNER_BUDGET_CATEGORIES = [...SPENDING_CATEGORIES, MOM_BUDGET_LABEL];
 

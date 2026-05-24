@@ -29,8 +29,9 @@ function seedUsers() {
     'INSERT INTO users (name, role, pin_hash, must_change_pin) VALUES (?, ?, ?, 1)'
   );
   insert.run('Owner', 'owner', hash);
-  insert.run('Mom', 'mom', hash);
-  console.log('[seed] inserted Owner and Mom with PIN 0000 (must change on first login)');
+  insert.run('Najwa', 'mom', hash);
+  insert.run('Majed', 'mom', hash);
+  console.log('[seed] inserted Owner, Najwa, Majed with PIN 0000 (must change on first login)');
 }
 
 function seedPrinciples() {
@@ -56,7 +57,7 @@ const DEFAULT_BUDGETS_USD = {
   'Transport': 50,
   'Household': 100,
   'Personal': 50,
-  "Mom's Spending": 80,
+  'Family spending': 80,
   'Unexpected': 50,
   'Other': 20,
 };

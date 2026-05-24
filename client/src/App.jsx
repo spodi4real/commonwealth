@@ -32,7 +32,7 @@ function RequireAuth({ children, role }) {
     return <Navigate to="/change-pin" replace />;
   }
   // Owner must complete first-run setup before any other screen loads.
-  // Mom never sees the wizard.
+  // Members (Najwa, Majed, …) never see the wizard.
   if (user.role === 'owner' && user.setupComplete === false
       && loc.pathname !== '/owner/wizard' && loc.pathname !== '/change-pin') {
     return <Navigate to="/owner/wizard" replace />;

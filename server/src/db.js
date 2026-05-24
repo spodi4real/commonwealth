@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3';
+import bcrypt from 'bcryptjs';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -189,5 +190,31 @@ function ensureColumn(table, column, definition) {
 // the path stored is relative to that dir.
 ensureColumn('transactions', 'name',         'TEXT');
 ensureColumn('transactions', 'receipt_path', 'TEXT');
+
+// v1.3 — multi-spender model.
+//   - Rename the seeded "Mom" user to "Najwa".
+//   - Rename the synthetic "Mom's Spending" budget to "Family spending".
+//   - Add a second non-owner user "Majed" if missing.
+// All three steps are idempotent — guarded by WHERE / NOT EXISTS, so they
+// run on every boot but only ever fire once.
+try {
+  db.prepare("UPDATE users SET name = 'Najwa' WHERE name = 'Mom' AND role = 'mom'").run();
+  db.prepare("UPDATE budgets SET category = 'Family spending' WHERE category = ?").run("Mom's Spending");
+
+  // Only auto-insert Majed if an Owner already exists. Without this guard
+  // the migration would fire on a brand-new DB and beat seed.js to the
+  // punch, leaving us with just Majed and no Owner.
+  const hasOwner = db.prepare("SELECT id FROM users WHERE role = 'owner' LIMIT 1").get();
+  const hasMajed = db.prepare("SELECT id FROM users WHERE name = 'Majed'").get();
+  if (hasOwner && !hasMajed) {
+    const hash = bcrypt.hashSync('0000', 10);
+    db.prepare(
+      "INSERT INTO users (name, role, pin_hash, must_change_pin) VALUES ('Majed', 'mom', ?, 1)"
+    ).run(hash);
+    console.log("[migration v1.3] inserted Majed (role=mom, PIN 0000)");
+  }
+} catch (e) {
+  console.error('[migration v1.3] error', e);
+}
 
 export default db;

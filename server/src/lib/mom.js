@@ -6,7 +6,7 @@ import {
   SETTING_MOM_AUTO_APPROVE_USD,
   SETTING_MOM_HARD_LIMIT_USD,
 } from './settings.js';
-import { getBudget, userSpend, momUserId } from './budgets.js';
+import { getBudget, membersSpend } from './budgets.js';
 import { MOM_BUDGET_LABEL } from './categories.js';
 
 // Evaluate a "can I spend this?" request from Mom.
@@ -44,8 +44,7 @@ export function evaluateCanISpend({ amount_iqd, category }) {
   }
 
   const month = currentMonth();
-  const momId = momUserId();
-  const spent = momId ? userSpend(momId, month) : 0;
+  const spent = membersSpend(month);
   const momBudget = getBudget(MOM_BUDGET_LABEL, month);
 
   if (momBudget) {
@@ -93,11 +92,10 @@ export function createApprovalRequest({ amount_iqd, category }) {
     .get(r.lastInsertRowid);
 }
 
-// Mom's allowance for today.
-// = (monthly mom budget - month-to-date spend) / days remaining (incl. today)
+// Today's allowance, shared by every non-owner member.
+//   = (monthly family budget − month-to-date combined spend) / days left
 export function getMomAllowance() {
   const month = currentMonth();
-  const momId = momUserId();
   const rate = getCurrentRate();
   const budget = getBudget(MOM_BUDGET_LABEL, month);
 
@@ -108,7 +106,7 @@ export function getMomAllowance() {
     return { status: 'no_rate', allowance_iqd: null, daily_target_iqd: null };
   }
 
-  const spent = momId ? userSpend(momId, month) : 0;
+  const spent = membersSpend(month);
   const remainingCents = budget.monthly_limit_usd_cents - spent;
   const totalDays = daysInMonth(month);
   const elapsed = Math.max(daysElapsedInMonth(month), 1);

@@ -3,9 +3,11 @@ import { api } from '../lib/api.js';
 import { fmtIQD, fmtRelativeDate } from '../lib/format.js';
 import { MOM_CATEGORIES } from '../lib/categories.js';
 import { AuthedShell } from '../components/Layout.jsx';
+import { useAuth } from '../lib/session.jsx';
 
 export default function MomDashboard() {
-  const [tab, setTab] = useState('ask'); // ask | log | recent
+  const { user } = useAuth();
+  const [tab, setTab] = useState('log'); // log | recent
   const [allowance, setAllowance] = useState(null);
 
   const loadAllowance = async () => {
@@ -17,22 +19,23 @@ export default function MomDashboard() {
   return (
     <AuthedShell>
       <div className="max-w-lg mx-auto space-y-6">
+        <header className="text-center">
+          <div className="cw-label">Welcome</div>
+          <h1 className="font-serif text-3xl mt-1">Hello, {user?.name}.</h1>
+        </header>
+
         <AllowanceBar data={allowance} />
 
-        <div className="grid grid-cols-3 gap-2">
-          <TabButton active={tab === 'ask'} onClick={() => setTab('ask')}>
-            Can I spend?
-          </TabButton>
+        <div className="grid grid-cols-2 gap-2">
           <TabButton active={tab === 'log'} onClick={() => setTab('log')}>
-            I spent
+            Log expense
           </TabButton>
           <TabButton active={tab === 'recent'} onClick={() => setTab('recent')}>
             Recent
           </TabButton>
         </div>
 
-        {tab === 'ask' && <CanISpend onChange={loadAllowance} />}
-        {tab === 'log' && <ISpent onChange={loadAllowance} />}
+        {tab === 'log'    && <Logger onChange={loadAllowance} />}
         {tab === 'recent' && <RecentMine onChange={loadAllowance} />}
       </div>
     </AuthedShell>
@@ -62,12 +65,12 @@ function AllowanceBar({ data }) {
                                  'border-line    bg-surface    text-inkDim';
   return (
     <div className={`cw-card border-2 p-4 text-center ${tone}`}>
-      <div className="cw-label">Today's allowance</div>
+      <div className="cw-label">Today's family allowance</div>
       {data?.status === 'green' || data?.status === 'amber' ? (
         <>
           <div className="font-serif text-4xl mt-1">{fmtIQD(data.allowance_iqd)}</div>
           <div className="text-xs mt-1 opacity-80">
-            {data.days_left} day{data.days_left === 1 ? '' : 's'} remaining this month
+            shared with the household · {data.days_left} day{data.days_left === 1 ? '' : 's'} left this month
           </div>
         </>
       ) : data?.status === 'red' ? (
@@ -86,118 +89,7 @@ function AllowanceBar({ data }) {
   );
 }
 
-function CanISpend({ onChange }) {
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState(MOM_CATEGORIES[0]);
-  const [result, setResult] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [reqId, setReqId] = useState(null);
-  const [pendingReq, setPendingReq] = useState(null);
-
-  useEffect(() => {
-    if (!reqId) return;
-    let live = true;
-    const tick = async () => {
-      try {
-        const { request } = await api.get(`/api/mom/can-i-spend/${reqId}`);
-        if (!live) return;
-        setPendingReq(request);
-        if (request.status !== 'pending') {
-          setReqId(null);
-          setResult({
-            verdict: request.status === 'approved' ? 'green' : 'red',
-            reason: request.status === 'approved'
-              ? `Owner approved.${request.owner_note ? ` "${request.owner_note}"` : ''} You can spend it now — then log it.`
-              : `Owner denied.${request.owner_note ? ` "${request.owner_note}"` : ''}`,
-            code: request.status,
-          });
-        }
-      } catch { /* keep polling */ }
-    };
-    const id = setInterval(tick, 3000);
-    tick();
-    return () => { live = false; clearInterval(id); };
-  }, [reqId]);
-
-  const ask = async (e) => {
-    e.preventDefault();
-    setBusy(true); setResult(null); setPendingReq(null); setReqId(null);
-    try {
-      const n = parseFloat(amount);
-      const r = await api.post('/api/mom/can-i-spend', { amount_iqd: n, category });
-      setResult(r);
-      if (r.verdict === 'amber' && r.request) {
-        setReqId(r.request.id);
-        setPendingReq(r.request);
-      }
-      onChange?.();
-    } catch (e) {
-      setResult({ verdict: 'red', reason: e.message });
-    } finally { setBusy(false); }
-  };
-
-  const reset = () => { setResult(null); setReqId(null); setPendingReq(null); setAmount(''); };
-
-  if (result) return <VerdictScreen result={result} pending={pendingReq} onReset={reset} />;
-
-  return (
-    <form onSubmit={ask} className="cw-card p-5 space-y-4">
-      <div>
-        <label className="cw-label block mb-1">Amount (IQD)</label>
-        <input
-          type="number" inputMode="numeric" step="1" min="1"
-          value={amount} onChange={(e) => setAmount(e.target.value)}
-          placeholder="5000" autoFocus required
-          className="cw-input w-full font-mono text-3xl text-center py-4"
-        />
-      </div>
-      <div>
-        <label className="cw-label block mb-2">For</label>
-        <div className="grid grid-cols-3 gap-2">
-          {MOM_CATEGORIES.map((c) => (
-            <button key={c} type="button" onClick={() => setCategory(c)}
-              className={`py-3 rounded text-sm transition-colors ${
-                category === c
-                  ? 'bg-surface2 text-ink ring-1 ring-gold'
-                  : 'bg-surface2/40 text-inkDim hover:text-ink hover:bg-surface2'
-              }`}
-            >{c}</button>
-          ))}
-        </div>
-      </div>
-      <button disabled={busy || !amount} className="cw-btn-primary w-full text-lg py-4">
-        {busy ? 'Checking…' : 'Check'}
-      </button>
-    </form>
-  );
-}
-
-function VerdictScreen({ result, pending, onReset }) {
-  const tone =
-    result.verdict === 'green' ? 'bg-success/20 border-success text-success' :
-    result.verdict === 'amber' ? 'bg-warning/20 border-warning text-warning' :
-                                  'bg-danger/20  border-danger  text-danger';
-  const headline =
-    result.verdict === 'green' ? 'Yes, go ahead' :
-    result.verdict === 'amber' ? 'Wait — asking Owner' :
-                                  'Not this month';
-  const icon = result.verdict === 'green' ? '✓' : result.verdict === 'amber' ? '⋯' : '✕';
-  const isWaiting = result.verdict === 'amber' && pending?.status === 'pending';
-
-  return (
-    <div className={`cw-card border-2 p-8 text-center ${tone} cw-fade-in`}>
-      <div className="text-6xl mb-2">{icon}</div>
-      <h2 className="font-serif text-3xl">{headline}</h2>
-      <p className="mt-3 text-base opacity-90 leading-relaxed">{result.reason}</p>
-      {isWaiting && <div className="mt-4 text-xs opacity-70">Checking back every few seconds…</div>}
-      <button onClick={onReset} className="cw-btn-primary mt-6 w-full py-3">
-        {isWaiting ? 'Cancel and ask differently' : 'Ask again'}
-      </button>
-    </div>
-  );
-}
-
-function ISpent({ onChange }) {
+function Logger({ onChange }) {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(MOM_CATEGORIES[0]);
   const [name, setName] = useState('');
@@ -320,12 +212,12 @@ function RecentMine({ onChange }) {
     <div className="space-y-2">
       <p className="text-xs text-inkDim px-1">
         Your recent purchases. If you returned something, mark it and the money
-        comes back to your allowance.
+        comes back to the family allowance.
       </p>
       {loading && <div className="text-inkDim text-sm text-center py-6">Loading…</div>}
       {!loading && txns.length === 0 && (
         <div className="cw-card p-6 text-center text-inkDim text-sm">
-          Nothing logged yet. Use "I spent" to add your first purchase.
+          Nothing logged yet. Use "Log expense" to add your first purchase.
         </div>
       )}
       {txns.map((t) => (

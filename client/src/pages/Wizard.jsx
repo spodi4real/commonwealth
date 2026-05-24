@@ -166,8 +166,8 @@ function StepRate({ value, onChange }) {
       <h2 className="font-serif text-2xl mt-1">Today's IQD per 1 USD</h2>
       <p className="text-inkDim text-sm mt-2">
         Every transaction is stored in USD and rendered in IQD using the rate
-        active on its date. Skip if you'll set this later — but then Mom's flow
-        won't price anything.
+        active on its date. Skip if you'll set this later — but then the
+        members' allowance card won't price anything.
       </p>
       <input
         autoFocus type="number" inputMode="numeric" step="1" min="1"

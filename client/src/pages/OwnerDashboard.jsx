@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import { fmtUSD, fmtIQD, fmtDate, fmtRelativeDate, todayISO } from '../lib/format.js';
 import { AuthedShell } from '../components/Layout.jsx';
-import { PendingApprovals } from '../components/PendingApprovals.jsx';
 import { ReviewModal } from '../components/ReviewModal.jsx';
 import { useAuth } from '../lib/session.jsx';
 
@@ -53,8 +52,6 @@ export default function OwnerDashboard() {
         {data?.principle && <DailyPrinciple text={data.principle.text} />}
 
         <OverdueIncomeBanner overdue={data?.overdue_income} />
-
-        <PendingApprovals onChange={load} />
 
         <div className="grid md:grid-cols-3 gap-6">
           <NetPositionCard data={data} />

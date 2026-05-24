@@ -24,8 +24,7 @@ export default function Settings() {
           <h1 className="text-4xl mt-1">Settings</h1>
           <p className="text-inkDim mt-2 text-sm leading-relaxed">
             The few numbers and lists that shape how Commonwealth behaves.
-            Change them deliberately — they affect dashboards, friction, and
-            Mom's verdicts.
+            Change them deliberately — they affect dashboards and friction.
           </p>
         </header>
 
@@ -50,22 +49,6 @@ export default function Settings() {
                   description="Allocations at or above this USD amount trigger the justification ritual."
                   keyName="friction_threshold_usd"
                   value={settings.friction_threshold_usd}
-                  displayMode="usd"
-                  onSaved={loadSettings}
-                />
-                <SettingCard
-                  title="Mom · auto-approve floor"
-                  description="Mom's asks under this USD amount get a green light immediately."
-                  keyName="mom_auto_approve_usd"
-                  value={settings.mom_auto_approve_usd}
-                  displayMode="usd"
-                  onSaved={loadSettings}
-                />
-                <SettingCard
-                  title="Mom · hard limit"
-                  description="Mom's asks above this USD amount are blocked — Owner must log them directly."
-                  keyName="mom_hard_limit_usd"
-                  value={settings.mom_hard_limit_usd}
                   displayMode="usd"
                   onSaved={loadSettings}
                 />

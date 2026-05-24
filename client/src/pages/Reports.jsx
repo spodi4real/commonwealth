@@ -127,7 +127,7 @@ function Summary({ data }) {
       <Tile label="Saved"         value={fmtUSD(s.saved_usd_cents)}    tone={s.saved_usd_cents >= 0 ? 'text-success' : 'text-danger'} />
       <Tile label="Savings rate"  value={`${(s.savings_rate * 100).toFixed(0)}%`}
             tone={s.savings_rate >= 0.2 ? 'text-success' : s.savings_rate >= 0 ? 'text-warning' : 'text-danger'} />
-      <Tile label="Mom's spend"   value={fmtUSD(s.mom_spend_usd_cents)} />
+      <Tile label="Family spend"  value={fmtUSD(s.mom_spend_usd_cents)} />
       <Tile label="Transactions"  value={s.transaction_count} />
     </div>
   );

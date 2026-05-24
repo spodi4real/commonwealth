@@ -2,7 +2,6 @@ import { db } from '../db.js';
 import { monthBounds } from './dates.js';
 import { MOM_BUDGET_LABEL } from './categories.js';
 
-// Returns { category, monthly_limit_usd_cents } or null.
 export function getBudget(category, month) {
   return db
     .prepare(
@@ -38,8 +37,7 @@ export function categorySpend(category, month) {
   return row.total;
 }
 
-// Sum of a user's non-deleted transactions in a month — used to compute the
-// synthetic "Mom's Spending" burn rate regardless of category.
+// Sum of a single user's non-deleted transactions in a month.
 export function userSpend(userId, month) {
   const { start, endExclusive } = monthBounds(month);
   const row = db
@@ -54,19 +52,40 @@ export function userSpend(userId, month) {
   return row.total;
 }
 
+// Sum across every non-owner user — the synthetic "Family spending" budget
+// is shared by Najwa + Majed (and any future members).
+export function membersSpend(month) {
+  const { start, endExclusive } = monthBounds(month);
+  const row = db
+    .prepare(
+      `SELECT COALESCE(SUM(t.amount_usd_cents), 0) AS total
+       FROM transactions t
+       JOIN users u ON u.id = t.user_id
+       WHERE u.role != 'owner'
+         AND t.created_at >= ? AND t.created_at < ?
+         AND t.deleted_at IS NULL`
+    )
+    .get(start, endExclusive);
+  return row.total;
+}
+
+export function memberUserIds() {
+  return db.prepare("SELECT id FROM users WHERE role != 'owner' ORDER BY id").all().map((r) => r.id);
+}
+
+// Back-compat: kept for any old caller. Returns the first non-owner id.
 export function momUserId() {
-  const row = db.prepare("SELECT id FROM users WHERE role = 'mom'").get();
+  const row = db.prepare("SELECT id FROM users WHERE role = 'mom' ORDER BY id LIMIT 1").get();
   return row?.id ?? null;
 }
 
 // For Owner's budget dashboard: returns each budget row with its spend.
-// For "Mom's Spending" the spend is sum-by-user, not sum-by-category.
+// "Family spending" is summed by role, not by category.
 export function listBudgetsWithSpend(month) {
   const budgets = listBudgets(month);
-  const momId = momUserId();
   return budgets.map((b) => {
     const spent_usd_cents = b.category === MOM_BUDGET_LABEL
-      ? (momId ? userSpend(momId, month) : 0)
+      ? membersSpend(month)
       : categorySpend(b.category, month);
     return { ...b, spent_usd_cents };
   });

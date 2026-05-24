@@ -22,10 +22,11 @@ export const SAVINGS_CATEGORIES = [
 // Categories Mom is allowed to select when logging her spending.
 export const MOM_CATEGORIES = ['Food', 'Household', 'Personal', 'Transport', 'Other'];
 
-// Synthetic label used in Owner's budget table to track Mom's total spending
-// regardless of category. Not a real transaction category — burn rate is
-// computed by summing all of Mom's transactions for the month.
-export const MOM_BUDGET_LABEL = "Mom's Spending";
+// Synthetic label used in Owner's budget table to track combined non-owner
+// spending regardless of category. Not a real transaction category — burn
+// rate is computed by summing all non-owner users' transactions for the
+// month (Najwa + Majed, today).
+export const MOM_BUDGET_LABEL = 'Family spending';
 
 export const OWNER_BUDGET_CATEGORIES = [...SPENDING_CATEGORIES, MOM_BUDGET_LABEL];
 
