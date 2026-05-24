@@ -10,6 +10,7 @@ import Goals from './pages/Goals.jsx';
 import PendingDesires from './pages/PendingDesires.jsx';
 import Reports from './pages/Reports.jsx';
 import Journal from './pages/Journal.jsx';
+import Settings from './pages/Settings.jsx';
 import MomDashboard from './pages/MomDashboard.jsx';
 
 function Loading() {
@@ -116,6 +117,14 @@ export default function App() {
         element={
           <RequireAuth role="owner">
             <Journal />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/owner/settings"
+        element={
+          <RequireAuth role="owner">
+            <Settings />
           </RequireAuth>
         }
       />
